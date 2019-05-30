@@ -41,6 +41,14 @@ import org.apache.rocketmq.srvutil.ServerUtil;
 import org.apache.rocketmq.srvutil.ShutdownHookThread;
 import org.slf4j.LoggerFactory;
 
+/**
+ * nameserver:
+ * Environment variables: ROCKETMQ_HOME=D:\workspaces\idea\github\rocketmq\temp_conf\rocketmq
+ *
+ * broker:
+ * program arguments:-c D:/workspaces/idea/github/rocketmq/temp_conf/rocketmq/conf/broker.conf
+ * Environment variables:  ROCKETMQ_HOME=D:\workspaces\idea\github\rocketmq\temp_conf\rocketmq
+ */
 public class NamesrvStartup {
 
     private static InternalLogger log;
