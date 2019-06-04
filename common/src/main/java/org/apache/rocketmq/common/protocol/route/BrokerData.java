@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Random;
 import org.apache.rocketmq.common.MixAll;
 
+// 已读
 public class BrokerData implements Comparable<BrokerData> {
     private String cluster;
     private String brokerName;
@@ -46,6 +47,7 @@ public class BrokerData implements Comparable<BrokerData> {
      *
      * @return Broker address.
      */
+    // 已读
     public String selectBrokerAddr() {
         String addr = this.brokerAddrs.get(MixAll.MASTER_ID);
 

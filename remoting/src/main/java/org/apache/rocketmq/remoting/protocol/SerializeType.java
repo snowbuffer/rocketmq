@@ -17,6 +17,7 @@
 
 package org.apache.rocketmq.remoting.protocol;
 
+// 已读
 public enum SerializeType {
     JSON((byte) 0),
     ROCKETMQ((byte) 1);
@@ -27,6 +28,7 @@ public enum SerializeType {
         this.code = code;
     }
 
+    // 已读
     public static SerializeType valueOf(byte code) {
         for (SerializeType serializeType : SerializeType.values()) {
             if (serializeType.getCode() == code) {

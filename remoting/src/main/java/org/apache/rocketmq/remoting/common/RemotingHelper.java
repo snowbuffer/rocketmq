@@ -150,6 +150,7 @@ public class RemotingHelper {
         }
     }
 
+    // 已读
     public static String parseChannelRemoteAddr(final Channel channel) {
         if (null == channel) {
             return "";

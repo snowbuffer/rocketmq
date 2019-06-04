@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicLong;
+
 import org.apache.rocketmq.common.annotation.ImportantField;
 import org.apache.rocketmq.common.constant.LoggerName;
 import org.apache.rocketmq.common.help.FAQUrl;
@@ -144,6 +145,7 @@ public class MixAll {
         return 0;
     }
 
+    // 已读
     public static void string2File(final String str, final String fileName) throws IOException {
 
         String tmpFile = fileName + ".tmp";
@@ -162,6 +164,7 @@ public class MixAll {
         file.renameTo(new File(fileName));
     }
 
+    // 已读
     public static void string2FileNotSafe(final String str, final String fileName) throws IOException {
         File file = new File(fileName);
         File fileParent = file.getParentFile();
@@ -182,11 +185,13 @@ public class MixAll {
         }
     }
 
+    // 已读
     public static String file2String(final String fileName) throws IOException {
         File file = new File(fileName);
         return file2String(file);
     }
 
+    // 已读
     public static String file2String(final File file) throws IOException {
         if (file.exists()) {
             byte[] data = new byte[(int) file.length()];
@@ -238,7 +243,7 @@ public class MixAll {
     }
 
     public static void printObjectProperties(final InternalLogger logger, final Object object,
-        final boolean onlyImportantField) {
+                                             final boolean onlyImportantField) {
         Field[] fields = object.getClass().getDeclaredFields();
         for (Field field : fields) {
             if (!Modifier.isStatic(field.getModifiers())) {

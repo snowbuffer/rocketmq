@@ -28,6 +28,9 @@ import org.apache.rocketmq.logging.InternalLogger;
 import org.apache.rocketmq.logging.InternalLoggerFactory;
 import org.apache.rocketmq.common.protocol.body.KVTable;
 import org.apache.rocketmq.namesrv.NamesrvController;
+
+// 已读
+// configTable 配置对象管理
 public class KVConfigManager {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.NAMESRV_LOGGER_NAME);
 
@@ -41,9 +44,11 @@ public class KVConfigManager {
         this.namesrvController = namesrvController;
     }
 
+    // 已读
     public void load() {
         String content = null;
         try {
+            // C:\Users\Administrator\namesrv\kvConfig.json => {"configTable":{"ORDER_TOPIC_CONFIG":{"UnitTest":"test"}}}
             content = MixAll.file2String(this.namesrvController.getNamesrvConfig().getKvConfigPath());
         } catch (IOException e) {
             log.warn("Load KV config table exception", e);
@@ -58,6 +63,7 @@ public class KVConfigManager {
         }
     }
 
+    // 已读
     public void putKVConfig(final String namespace, final String key, final String value) {
         try {
             this.lock.writeLock().lockInterruptibly();
@@ -87,6 +93,7 @@ public class KVConfigManager {
         this.persist();
     }
 
+    // 已读
     public void persist() {
         try {
             this.lock.readLock().lockInterruptibly();
@@ -97,6 +104,7 @@ public class KVConfigManager {
                 String content = kvConfigSerializeWrapper.toJson();
 
                 if (null != content) {
+                    // 讲最新的configTable写入文件，便于下次启动读取
                     MixAll.string2File(content, this.namesrvController.getNamesrvConfig().getKvConfigPath());
                 }
             } catch (IOException e) {
@@ -111,6 +119,7 @@ public class KVConfigManager {
 
     }
 
+    // 已读
     public void deleteKVConfig(final String namespace, final String key) {
         try {
             this.lock.writeLock().lockInterruptibly();
@@ -131,6 +140,7 @@ public class KVConfigManager {
         this.persist();
     }
 
+    // 已读
     public byte[] getKVListByNamespace(final String namespace) {
         try {
             this.lock.readLock().lockInterruptibly();
@@ -151,6 +161,7 @@ public class KVConfigManager {
         return null;
     }
 
+    // 已读
     public String getKVConfig(final String namespace, final String key) {
         try {
             this.lock.readLock().lockInterruptibly();
@@ -169,6 +180,7 @@ public class KVConfigManager {
         return null;
     }
 
+    // 已读  打印所有的kv配置
     public void printAllPeriodically() {
         try {
             this.lock.readLock().lockInterruptibly();

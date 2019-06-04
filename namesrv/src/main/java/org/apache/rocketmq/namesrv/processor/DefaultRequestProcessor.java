@@ -66,6 +66,17 @@ public class DefaultRequestProcessor implements NettyRequestProcessor {
         this.namesrvController = namesrvController;
     }
 
+    /**
+     * 主体逻辑：
+     *      1. 将外部request请求转换成对应的xxxRequestCommandCustomHeader
+     *      2. 将xxxRequestCommandCustomHeader传入namesrvController，并调用xxManager进行处理
+     *      3. 将2中的结果封装到xxResponseCommandCustomHeader,并返回
+     *
+     * @param ctx
+     * @param request
+     * @return
+     * @throws RemotingCommandException
+     */
     @Override
     public RemotingCommand processRequest(ChannelHandlerContext ctx,
         RemotingCommand request) throws RemotingCommandException {
@@ -79,26 +90,26 @@ public class DefaultRequestProcessor implements NettyRequestProcessor {
 
 
         switch (request.getCode()) {
-            case RequestCode.PUT_KV_CONFIG:
+            case RequestCode.PUT_KV_CONFIG: // kv设置
                 return this.putKVConfig(ctx, request);
-            case RequestCode.GET_KV_CONFIG:
+            case RequestCode.GET_KV_CONFIG: // 获取kv值
                 return this.getKVConfig(ctx, request);
-            case RequestCode.DELETE_KV_CONFIG:
+            case RequestCode.DELETE_KV_CONFIG: // 删除kv值
                 return this.deleteKVConfig(ctx, request);
-            case RequestCode.QUERY_DATA_VERSION:
+            case RequestCode.QUERY_DATA_VERSION: // 查询数据版本
                 return queryBrokerTopicConfig(ctx, request);
-            case RequestCode.REGISTER_BROKER:
+            case RequestCode.REGISTER_BROKER: // 外部borker注册
                 Version brokerVersion = MQVersion.value2Version(request.getVersion());
                 if (brokerVersion.ordinal() >= MQVersion.Version.V3_0_11.ordinal()) {
                     return this.registerBrokerWithFilterServer(ctx, request);
                 } else {
                     return this.registerBroker(ctx, request);
                 }
-            case RequestCode.UNREGISTER_BROKER:
+            case RequestCode.UNREGISTER_BROKER: // 外部broker移除注册
                 return this.unregisterBroker(ctx, request);
-            case RequestCode.GET_ROUTEINTO_BY_TOPIC:
+            case RequestCode.GET_ROUTEINTO_BY_TOPIC: // 获取指定topic路由信息
                 return this.getRouteInfoByTopic(ctx, request);
-            case RequestCode.GET_BROKER_CLUSTER_INFO:
+            case RequestCode.GET_BROKER_CLUSTER_INFO: // 获取集群信息
                 return this.getBrokerClusterInfo(ctx, request);
             case RequestCode.WIPE_WRITE_PERM_OF_BROKER:
                 return this.wipeWritePermOfBroker(ctx, request);
@@ -133,12 +144,16 @@ public class DefaultRequestProcessor implements NettyRequestProcessor {
         return false;
     }
 
+    // 已读
     public RemotingCommand putKVConfig(ChannelHandlerContext ctx,
         RemotingCommand request) throws RemotingCommandException {
         final RemotingCommand response = RemotingCommand.createResponseCommand(null);
+
+        // 解析kv请求头， 并将request中的数据复制到新的PutKVConfigRequestHeader对象中
         final PutKVConfigRequestHeader requestHeader =
             (PutKVConfigRequestHeader) request.decodeCommandCustomHeader(PutKVConfigRequestHeader.class);
 
+        // 保存并持久化configTable
         this.namesrvController.getKvConfigManager().putKVConfig(
             requestHeader.getNamespace(),
             requestHeader.getKey(),
@@ -150,10 +165,14 @@ public class DefaultRequestProcessor implements NettyRequestProcessor {
         return response;
     }
 
+    // 已读
     public RemotingCommand getKVConfig(ChannelHandlerContext ctx,
         RemotingCommand request) throws RemotingCommandException {
+        // 构建response
         final RemotingCommand response = RemotingCommand.createResponseCommand(GetKVConfigResponseHeader.class);
+        // 读取get kv responseHeader
         final GetKVConfigResponseHeader responseHeader = (GetKVConfigResponseHeader) response.readCustomHeader();
+        // 解析get kev request => 将request中的数据复制到新的GetKVConfigRequestHeader中
         final GetKVConfigRequestHeader requestHeader =
             (GetKVConfigRequestHeader) request.decodeCommandCustomHeader(GetKVConfigRequestHeader.class);
 
@@ -174,9 +193,12 @@ public class DefaultRequestProcessor implements NettyRequestProcessor {
         return response;
     }
 
+    // 已读
     public RemotingCommand deleteKVConfig(ChannelHandlerContext ctx,
         RemotingCommand request) throws RemotingCommandException {
+        // 构建response
         final RemotingCommand response = RemotingCommand.createResponseCommand(null);
+        // 解析request,并将request中的值复制到新的DeleteKVConfigRequestHeader对象中
         final DeleteKVConfigRequestHeader requestHeader =
             (DeleteKVConfigRequestHeader) request.decodeCommandCustomHeader(DeleteKVConfigRequestHeader.class);
 
@@ -190,6 +212,7 @@ public class DefaultRequestProcessor implements NettyRequestProcessor {
         return response;
     }
 
+    // 已读
     public RemotingCommand registerBrokerWithFilterServer(ChannelHandlerContext ctx, RemotingCommand request)
         throws RemotingCommandException {
         final RemotingCommand response = RemotingCommand.createResponseCommand(RegisterBrokerResponseHeader.class);
@@ -237,6 +260,7 @@ public class DefaultRequestProcessor implements NettyRequestProcessor {
         return response;
     }
 
+    // 已读
     private boolean checksum(ChannelHandlerContext ctx, RemotingCommand request,
         RegisterBrokerRequestHeader requestHeader) {
         if (requestHeader.getBodyCrc32() != 0) {
@@ -250,15 +274,19 @@ public class DefaultRequestProcessor implements NettyRequestProcessor {
         return true;
     }
 
+    // 已读
     public RemotingCommand queryBrokerTopicConfig(ChannelHandlerContext ctx,
         RemotingCommand request) throws RemotingCommandException {
+        // 构建response
         final RemotingCommand response = RemotingCommand.createResponseCommand(QueryDataVersionResponseHeader.class);
         final QueryDataVersionResponseHeader responseHeader = (QueryDataVersionResponseHeader) response.readCustomHeader();
+        // 解析request,并将request中的数据复制到新的QueryDataVersionRequestHeader对象中
         final QueryDataVersionRequestHeader requestHeader =
             (QueryDataVersionRequestHeader) request.decodeCommandCustomHeader(QueryDataVersionRequestHeader.class);
         DataVersion dataVersion = DataVersion.decode(request.getBody(), DataVersion.class);
 
         Boolean changed = this.namesrvController.getRouteInfoManager().isBrokerTopicConfigChanged(requestHeader.getBrokerAddr(), dataVersion);
+        // 如果没有变化，则更新时间戳，数据版本不变
         if (!changed) {
             this.namesrvController.getRouteInfoManager().updateBrokerInfoUpdateTimestamp(requestHeader.getBrokerAddr());
         }
@@ -274,6 +302,7 @@ public class DefaultRequestProcessor implements NettyRequestProcessor {
         return response;
     }
 
+    // 已读
     public RemotingCommand registerBroker(ChannelHandlerContext ctx,
         RemotingCommand request) throws RemotingCommandException {
         final RemotingCommand response = RemotingCommand.createResponseCommand(RegisterBrokerResponseHeader.class);
@@ -310,6 +339,7 @@ public class DefaultRequestProcessor implements NettyRequestProcessor {
         responseHeader.setHaServerAddr(result.getHaServerAddr());
         responseHeader.setMasterAddr(result.getMasterAddr());
 
+        // FIXME 这段代码是什么意思？
         byte[] jsonValue = this.namesrvController.getKvConfigManager().getKVListByNamespace(NamesrvUtil.NAMESPACE_ORDER_TOPIC_CONFIG);
         response.setBody(jsonValue);
         response.setCode(ResponseCode.SUCCESS);
@@ -317,6 +347,7 @@ public class DefaultRequestProcessor implements NettyRequestProcessor {
         return response;
     }
 
+    // 已读
     public RemotingCommand unregisterBroker(ChannelHandlerContext ctx,
         RemotingCommand request) throws RemotingCommandException {
         final RemotingCommand response = RemotingCommand.createResponseCommand(null);
@@ -334,6 +365,7 @@ public class DefaultRequestProcessor implements NettyRequestProcessor {
         return response;
     }
 
+    // 已读
     public RemotingCommand getRouteInfoByTopic(ChannelHandlerContext ctx,
         RemotingCommand request) throws RemotingCommandException {
         final RemotingCommand response = RemotingCommand.createResponseCommand(null);
@@ -363,6 +395,7 @@ public class DefaultRequestProcessor implements NettyRequestProcessor {
         return response;
     }
 
+    // 已读
     private RemotingCommand getBrokerClusterInfo(ChannelHandlerContext ctx, RemotingCommand request) {
         final RemotingCommand response = RemotingCommand.createResponseCommand(null);
 

@@ -38,6 +38,7 @@ import org.apache.rocketmq.logging.InternalLogger;
 import org.apache.rocketmq.logging.InternalLoggerFactory;
 import org.apache.rocketmq.remoting.protocol.RemotingSerializable;
 
+// 已读
 public class RegisterBrokerBody extends RemotingSerializable {
 
     private static final InternalLogger LOGGER = InternalLoggerFactory.getLogger(LoggerName.COMMON_LOGGER_NAME);
@@ -141,12 +142,14 @@ public class RegisterBrokerBody extends RemotingSerializable {
         return registerBrokerBody;
     }
 
+    // 已读
     private static byte[] convertIntToByteArray(int n) {
         ByteBuffer byteBuffer = ByteBuffer.allocate(4);
         byteBuffer.putInt(n);
         return byteBuffer.array();
     }
 
+    // 已读
     private static byte[] readBytes(InflaterInputStream inflaterInputStream, int length) throws IOException {
         byte[] buffer = new byte[length];
         int bytesRead = 0;
@@ -161,6 +164,7 @@ public class RegisterBrokerBody extends RemotingSerializable {
         return buffer;
     }
 
+    // 已读
     private static int readInt(InflaterInputStream inflaterInputStream) throws IOException {
         byte[] buffer = readBytes(inflaterInputStream, 4);
         ByteBuffer byteBuffer = ByteBuffer.wrap(buffer);
@@ -183,6 +187,7 @@ public class RegisterBrokerBody extends RemotingSerializable {
         this.filterServerList = filterServerList;
     }
 
+    // 已读
     public static ConcurrentMap<String, TopicConfig> cloneTopicConfigTable(
         ConcurrentMap<String, TopicConfig> topicConfigConcurrentMap) {
         ConcurrentHashMap<String, TopicConfig> result = new ConcurrentHashMap<String, TopicConfig>();

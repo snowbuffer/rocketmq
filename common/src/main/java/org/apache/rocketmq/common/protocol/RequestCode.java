@@ -17,6 +17,8 @@
 
 package org.apache.rocketmq.common.protocol;
 
+// 已读
+// 外部请求码，执行不同的请求逻辑
 public class RequestCode {
 
     public static final int SEND_MESSAGE = 10;

@@ -16,6 +16,7 @@
  */
 package org.apache.rocketmq.common;
 
+// 已读
 public class MQVersion {
 
     public static final int CURRENT_VERSION = Version.V4_5_1.ordinal();
@@ -38,6 +39,7 @@ public class MQVersion {
         return Version.values()[value];
     }
 
+    // 已读
     public enum Version {
         V3_0_0_SNAPSHOT,
         V3_0_0_ALPHA1,

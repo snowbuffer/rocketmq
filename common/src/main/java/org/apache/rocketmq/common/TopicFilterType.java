@@ -16,6 +16,7 @@
  */
 package org.apache.rocketmq.common;
 
+// 已读
 public enum TopicFilterType {
     SINGLE_TAG,
     MULTI_TAG

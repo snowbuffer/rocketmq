@@ -133,6 +133,7 @@ public class RocketMQSerializable {
         return length;
     }
 
+    // 已读
     public static RemotingCommand rocketMQProtocolDecode(final byte[] headerArray) {
         RemotingCommand cmd = new RemotingCommand();
         ByteBuffer headerBuffer = ByteBuffer.wrap(headerArray);

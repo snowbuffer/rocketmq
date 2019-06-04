@@ -17,6 +17,7 @@
 
 package org.apache.rocketmq.remoting.protocol;
 
+// 已读
 public class RemotingSysResponseCode {
 
     public static final int SUCCESS = 0;

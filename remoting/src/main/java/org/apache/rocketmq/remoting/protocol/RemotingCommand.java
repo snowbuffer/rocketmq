@@ -31,6 +31,9 @@ import org.apache.rocketmq.remoting.exception.RemotingCommandException;
 import org.apache.rocketmq.logging.InternalLogger;
 import org.apache.rocketmq.logging.InternalLoggerFactory;
 
+// 已读
+// 远程请求命令，主要用于构建request请求，response请求
+// 序列化与反序列化RemotingCommand对象
 public class RemotingCommand {
     public static final String SERIALIZE_TYPE_PROPERTY = "rocketmq.serialize.type";
     public static final String SERIALIZE_TYPE_ENV = "ROCKETMQ_SERIALIZE_TYPE";
@@ -39,11 +42,11 @@ public class RemotingCommand {
     private static final int RPC_TYPE = 0; // 0, REQUEST_COMMAND
     private static final int RPC_ONEWAY = 1; // 0, RPC
     private static final Map<Class<? extends CommandCustomHeader>, Field[]> CLASS_HASH_MAP =
-        new HashMap<Class<? extends CommandCustomHeader>, Field[]>();
-    private static final Map<Class, String> CANONICAL_NAME_CACHE = new HashMap<Class, String>();
+        new HashMap<Class<? extends CommandCustomHeader>, Field[]>(); // CommandCustomHeader 实现类对应的字段数组
+    private static final Map<Class, String/*CanonicalName*/> CANONICAL_NAME_CACHE = new HashMap<Class, String>();
     // 1, Oneway
     // 1, RESPONSE_COMMAND
-    private static final Map<Field, Boolean> NULLABLE_FIELD_CACHE = new HashMap<Field, Boolean>();
+    private static final Map<Field, Boolean> NULLABLE_FIELD_CACHE = new HashMap<Field, Boolean>(); // Field是否被CFNotNull注解
     private static final String STRING_CANONICAL_NAME = String.class.getCanonicalName();
     private static final String DOUBLE_CANONICAL_NAME_1 = Double.class.getCanonicalName();
     private static final String DOUBLE_CANONICAL_NAME_2 = double.class.getCanonicalName();
@@ -75,8 +78,8 @@ public class RemotingCommand {
     private int opaque = requestId.getAndIncrement();
     private int flag = 0;
     private String remark;
-    private HashMap<String, String> extFields;
-    private transient CommandCustomHeader customHeader;
+    private HashMap<String/*customefieldName*/, String> extFields;
+    private transient CommandCustomHeader customHeader; // extFields中的非this开头的fileName的值可以覆盖customHeader对应的字段值
 
     private SerializeType serializeTypeCurrentRPC = serializeTypeConfigInThisServer;
 
@@ -85,6 +88,7 @@ public class RemotingCommand {
     protected RemotingCommand() {
     }
 
+    // 已读
     public static RemotingCommand createRequestCommand(int code, CommandCustomHeader customHeader) {
         RemotingCommand cmd = new RemotingCommand();
         cmd.setCode(code);
@@ -93,6 +97,8 @@ public class RemotingCommand {
         return cmd;
     }
 
+    // 已读
+    // 设置版本号
     private static void setCmdVersion(RemotingCommand cmd) {
         if (configVersion >= 0) {
             cmd.setVersion(configVersion);
@@ -106,10 +112,12 @@ public class RemotingCommand {
         }
     }
 
+    // 已读
     public static RemotingCommand createResponseCommand(Class<? extends CommandCustomHeader> classHeader) {
         return createResponseCommand(RemotingSysResponseCode.SYSTEM_ERROR, "not set any response code", classHeader);
     }
 
+    // 已读
     public static RemotingCommand createResponseCommand(int code, String remark,
         Class<? extends CommandCustomHeader> classHeader) {
         RemotingCommand cmd = new RemotingCommand();
@@ -132,15 +140,18 @@ public class RemotingCommand {
         return cmd;
     }
 
+    // 已读
     public static RemotingCommand createResponseCommand(int code, String remark) {
         return createResponseCommand(code, remark, null);
     }
 
+    // 已读
     public static RemotingCommand decode(final byte[] array) {
         ByteBuffer byteBuffer = ByteBuffer.wrap(array);
         return decode(byteBuffer);
     }
 
+    // 已读
     public static RemotingCommand decode(final ByteBuffer byteBuffer) {
         int length = byteBuffer.limit();
         int oriHeaderLen = byteBuffer.getInt();
@@ -162,10 +173,12 @@ public class RemotingCommand {
         return cmd;
     }
 
+    // 已读
     public static int getHeaderLength(int length) {
         return length & 0xFFFFFF;
     }
 
+    // 已读
     private static RemotingCommand headerDecode(byte[] headerData, SerializeType type) {
         switch (type) {
             case JSON:
@@ -183,10 +196,12 @@ public class RemotingCommand {
         return null;
     }
 
+    // 已读
     public static SerializeType getProtocolType(int source) {
         return SerializeType.valueOf((byte) ((source >> 24) & 0xFF));
     }
 
+    // 已读
     public static int createNewRequestId() {
         return requestId.incrementAndGet();
     }
@@ -195,6 +210,7 @@ public class RemotingCommand {
         return serializeTypeConfigInThisServer;
     }
 
+    // 已读
     private static boolean isBlank(String str) {
         int strLen;
         if (str == null || (strLen = str.length()) == 0) {
@@ -208,6 +224,7 @@ public class RemotingCommand {
         return true;
     }
 
+    // 已读
     public static byte[] markProtocolType(int source, SerializeType type) {
         byte[] result = new byte[4];
 
@@ -218,19 +235,23 @@ public class RemotingCommand {
         return result;
     }
 
+    // 已读
     public void markResponseType() {
         int bits = 1 << RPC_TYPE;
         this.flag |= bits;
     }
 
+    // 已读
     public CommandCustomHeader readCustomHeader() {
         return customHeader;
     }
 
+    // 已读
     public void writeCustomHeader(CommandCustomHeader customHeader) {
         this.customHeader = customHeader;
     }
 
+    // 已读
     public CommandCustomHeader decodeCommandCustomHeader(
         Class<? extends CommandCustomHeader> classHeader) throws RemotingCommandException {
         CommandCustomHeader objectHeader;
@@ -242,6 +263,7 @@ public class RemotingCommand {
             return null;
         }
 
+        // 如果存在自定义的字段
         if (this.extFields != null) {
 
             Field[] fields = getClazzFields(classHeader);
@@ -291,6 +313,7 @@ public class RemotingCommand {
         return objectHeader;
     }
 
+    // 已读
     private Field[] getClazzFields(Class<? extends CommandCustomHeader> classHeader) {
         Field[] field = CLASS_HASH_MAP.get(classHeader);
 
@@ -303,6 +326,7 @@ public class RemotingCommand {
         return field;
     }
 
+    // 已读
     private boolean isFieldNullable(Field field) {
         if (!NULLABLE_FIELD_CACHE.containsKey(field)) {
             Annotation annotation = field.getAnnotation(CFNotNull.class);
@@ -313,6 +337,7 @@ public class RemotingCommand {
         return NULLABLE_FIELD_CACHE.get(field);
     }
 
+    // 已读
     private String getCanonicalName(Class clazz) {
         String name = CANONICAL_NAME_CACHE.get(clazz);
 
@@ -325,6 +350,7 @@ public class RemotingCommand {
         return name;
     }
 
+    // 已读
     public ByteBuffer encode() {
         // 1> header length size
         int length = 4;
@@ -359,6 +385,7 @@ public class RemotingCommand {
         return result;
     }
 
+    // 已读
     private byte[] headerEncode() {
         this.makeCustomHeaderToNet();
         if (SerializeType.ROCKETMQ == serializeTypeCurrentRPC) {
@@ -368,6 +395,7 @@ public class RemotingCommand {
         }
     }
 
+    // 已读
     public void makeCustomHeaderToNet() {
         if (this.customHeader != null) {
             Field[] fields = getClazzFields(customHeader.getClass());
@@ -396,10 +424,12 @@ public class RemotingCommand {
         }
     }
 
+    // 已读
     public ByteBuffer encodeHeader() {
         return encodeHeader(this.body != null ? this.body.length : 0);
     }
 
+    // 已读
     public ByteBuffer encodeHeader(final int bodyLength) {
         // 1> header length size
         int length = 4;
@@ -429,25 +459,30 @@ public class RemotingCommand {
         return result;
     }
 
+    // 已读
     public void markOnewayRPC() {
         int bits = 1 << RPC_ONEWAY;
         this.flag |= bits;
     }
 
+    // 已读
     @JSONField(serialize = false)
     public boolean isOnewayRPC() {
         int bits = 1 << RPC_ONEWAY;
         return (this.flag & bits) == bits;
     }
 
+    // 已读
     public int getCode() {
         return code;
     }
 
+    // 已读
     public void setCode(int code) {
         this.code = code;
     }
 
+    // 已读
     @JSONField(serialize = false)
     public RemotingCommandType getType() {
         if (this.isResponseType()) {
@@ -457,12 +492,14 @@ public class RemotingCommand {
         return RemotingCommandType.REQUEST_COMMAND;
     }
 
+    // 已读
     @JSONField(serialize = false)
     public boolean isResponseType() {
         int bits = 1 << RPC_TYPE;
         return (this.flag & bits) == bits;
     }
 
+    // 已读
     public LanguageCode getLanguage() {
         return language;
     }
