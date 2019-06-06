@@ -28,6 +28,7 @@ import java.util.Properties;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+// 已读
 public class Configuration {
 
     private final InternalLogger log;
@@ -68,6 +69,7 @@ public class Configuration {
      *
      * @return the current Configuration object
      */
+    // 已读
     public Configuration registerConfig(Object configObject) {
         try {
             readWriteLock.writeLock().lockInterruptibly();
@@ -142,6 +144,7 @@ public class Configuration {
         }
     }
 
+    // 已读
     private String getStorePath() {
         String realStorePath = null;
         try {
@@ -171,6 +174,7 @@ public class Configuration {
         this.storePath = storePath;
     }
 
+    // 已读
     public void update(Properties properties) {
         try {
             readWriteLock.writeLock().lockInterruptibly();
@@ -197,6 +201,7 @@ public class Configuration {
         persist();
     }
 
+    // 已读
     public void persist() {
         try {
             readWriteLock.readLock().lockInterruptibly();
@@ -215,6 +220,7 @@ public class Configuration {
         }
     }
 
+    // 已读
     public String getAllConfigsFormatString() {
         try {
             readWriteLock.readLock().lockInterruptibly();
@@ -255,6 +261,7 @@ public class Configuration {
         return null;
     }
 
+    // 已读
     private String getAllConfigsInternal() {
         StringBuilder stringBuilder = new StringBuilder();
 
@@ -275,6 +282,7 @@ public class Configuration {
         return stringBuilder.toString();
     }
 
+    // 已读
     private void merge(Properties from, Properties to) {
         for (Object key : from.keySet()) {
             Object fromObj = from.get(key), toObj = to.get(key);
@@ -285,6 +293,7 @@ public class Configuration {
         }
     }
 
+    // 已读
     private void mergeIfExist(Properties from, Properties to) {
         for (Object key : from.keySet()) {
             if (!to.containsKey(key)) {

@@ -31,6 +31,7 @@ import org.apache.rocketmq.remoting.exception.RemotingCommandException;
 import org.apache.rocketmq.remoting.protocol.RemotingCommand;
 import org.apache.rocketmq.tools.admin.DefaultMQAdminExt;
 
+// 已读
 public class ClusterTestRequestProcessor extends DefaultRequestProcessor {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.NAMESRV_LOGGER_NAME);
     private final DefaultMQAdminExt adminExt;
@@ -49,6 +50,7 @@ public class ClusterTestRequestProcessor extends DefaultRequestProcessor {
         }
     }
 
+    // 已读
     @Override
     public RemotingCommand getRouteInfoByTopic(ChannelHandlerContext ctx,
         RemotingCommand request) throws RemotingCommandException {

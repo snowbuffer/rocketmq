@@ -71,6 +71,7 @@ public class RouteInfoManager {
         return clusterInfoSerializeWrapper.encode();
     }
 
+    // 已读
     public void deleteTopic(final String topic) {
         try {
             try {
@@ -84,6 +85,7 @@ public class RouteInfoManager {
         }
     }
 
+    // 已读
     public byte[] getAllTopicList() {
         TopicList topicList = new TopicList();
         try {
@@ -232,6 +234,7 @@ public class RouteInfoManager {
         }
     }
 
+    // 已读
     private void createAndUpdateQueueData(final String brokerName, final TopicConfig topicConfig) {
         QueueData queueData = new QueueData();
         queueData.setBrokerName(brokerName);
@@ -269,6 +272,7 @@ public class RouteInfoManager {
         }
     }
 
+    // 已读
     public int wipeWritePermOfBrokerByLock(final String brokerName) {
         try {
             try {
@@ -284,6 +288,7 @@ public class RouteInfoManager {
         return 0;
     }
 
+    // 已读
     private int wipeWritePermOfBroker(final String brokerName) {
         int wipeTopicCnt = 0;
         Iterator<Entry<String, List<QueueData>>> itTopic = this.topicQueueTable.entrySet().iterator();
@@ -462,6 +467,7 @@ public class RouteInfoManager {
         }
     }
 
+    // 已读
     public void onChannelDestroy(String remoteAddr, Channel channel) {
         String brokerAddrFound = null;
         if (channel != null) {
@@ -583,6 +589,7 @@ public class RouteInfoManager {
         }
     }
 
+    // 已读
     public void printAllPeriodically() {
         try {
             try {
@@ -631,6 +638,7 @@ public class RouteInfoManager {
         }
     }
 
+    // 已读
     public byte[] getSystemTopicList() {
         TopicList topicList = new TopicList();
         try {
@@ -663,6 +671,7 @@ public class RouteInfoManager {
         return topicList.encode();
     }
 
+    // 已读
     public byte[] getTopicsByCluster(String cluster) {
         TopicList topicList = new TopicList();
         try {
@@ -694,6 +703,7 @@ public class RouteInfoManager {
         return topicList.encode();
     }
 
+    // 已读
     public byte[] getUnitTopics() {
         TopicList topicList = new TopicList();
         try {
@@ -720,6 +730,7 @@ public class RouteInfoManager {
         return topicList.encode();
     }
 
+    // 已读
     public byte[] getHasUnitSubTopicList() {
         TopicList topicList = new TopicList();
         try {
@@ -746,6 +757,7 @@ public class RouteInfoManager {
         return topicList.encode();
     }
 
+    // 已读
     public byte[] getHasUnitSubUnUnitTopicList() {
         TopicList topicList = new TopicList();
         try {

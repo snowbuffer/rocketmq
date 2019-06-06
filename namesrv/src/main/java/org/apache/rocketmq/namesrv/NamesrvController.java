@@ -141,6 +141,7 @@ public class NamesrvController {
         return true;
     }
 
+    // 已读
     private void registerProcessor() {
         if (namesrvConfig.isClusterTest()) {
 

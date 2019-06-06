@@ -276,6 +276,7 @@ public class MixAll {
         }
     }
 
+    // 已读
     public static String properties2String(final Properties properties) {
         StringBuilder sb = new StringBuilder();
         for (Map.Entry<Object, Object> entry : properties.entrySet()) {
@@ -299,6 +300,7 @@ public class MixAll {
         return properties;
     }
 
+    // 已读
     public static Properties object2Properties(final Object object) {
         Properties properties = new Properties();
 
@@ -325,6 +327,7 @@ public class MixAll {
         return properties;
     }
 
+    // 已读
     public static void properties2Object(final Properties p, final Object object) {
         Method[] methods = object.getClass().getMethods();
         for (Method method : methods) {

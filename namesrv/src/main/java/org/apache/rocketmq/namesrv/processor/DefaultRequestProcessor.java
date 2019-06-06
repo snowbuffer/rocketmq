@@ -111,27 +111,27 @@ public class DefaultRequestProcessor implements NettyRequestProcessor {
                 return this.getRouteInfoByTopic(ctx, request);
             case RequestCode.GET_BROKER_CLUSTER_INFO: // 获取集群信息
                 return this.getBrokerClusterInfo(ctx, request);
-            case RequestCode.WIPE_WRITE_PERM_OF_BROKER:
+            case RequestCode.WIPE_WRITE_PERM_OF_BROKER: // 擦除指定borker的写权限
                 return this.wipeWritePermOfBroker(ctx, request);
-            case RequestCode.GET_ALL_TOPIC_LIST_FROM_NAMESERVER:
+            case RequestCode.GET_ALL_TOPIC_LIST_FROM_NAMESERVER: // 从nameserver获取所有topic列表
                 return getAllTopicListFromNameserver(ctx, request);
-            case RequestCode.DELETE_TOPIC_IN_NAMESRV:
+            case RequestCode.DELETE_TOPIC_IN_NAMESRV: // 从nameserver上三处指定的topic
                 return deleteTopicInNamesrv(ctx, request);
-            case RequestCode.GET_KVLIST_BY_NAMESPACE:
+            case RequestCode.GET_KVLIST_BY_NAMESPACE: // 根据namespace获取kv config
                 return this.getKVListByNamespace(ctx, request);
-            case RequestCode.GET_TOPICS_BY_CLUSTER:
+            case RequestCode.GET_TOPICS_BY_CLUSTER: // 获取指定集群下的所有topic信息
                 return this.getTopicsByCluster(ctx, request);
-            case RequestCode.GET_SYSTEM_TOPIC_LIST_FROM_NS:
+            case RequestCode.GET_SYSTEM_TOPIC_LIST_FROM_NS: // 从nameserver获取系统topic信息
                 return this.getSystemTopicListFromNs(ctx, request);
-            case RequestCode.GET_UNIT_TOPIC_LIST:
+            case RequestCode.GET_UNIT_TOPIC_LIST: // 获取单元topic信息
                 return this.getUnitTopicList(ctx, request);
             case RequestCode.GET_HAS_UNIT_SUB_TOPIC_LIST:
                 return this.getHasUnitSubTopicList(ctx, request);
             case RequestCode.GET_HAS_UNIT_SUB_UNUNIT_TOPIC_LIST:
                 return this.getHasUnitSubUnUnitTopicList(ctx, request);
-            case RequestCode.UPDATE_NAMESRV_CONFIG:
+            case RequestCode.UPDATE_NAMESRV_CONFIG: // 更新配置信息
                 return this.updateConfig(ctx, request);
-            case RequestCode.GET_NAMESRV_CONFIG:
+            case RequestCode.GET_NAMESRV_CONFIG: // 获取配置信息
                 return this.getConfig(ctx, request);
             default:
                 break;
@@ -407,6 +407,7 @@ public class DefaultRequestProcessor implements NettyRequestProcessor {
         return response;
     }
 
+    // 已读
     private RemotingCommand wipeWritePermOfBroker(ChannelHandlerContext ctx,
         RemotingCommand request) throws RemotingCommandException {
         final RemotingCommand response = RemotingCommand.createResponseCommand(WipeWritePermOfBrokerResponseHeader.class);
@@ -427,6 +428,7 @@ public class DefaultRequestProcessor implements NettyRequestProcessor {
         return response;
     }
 
+    // 已读
     private RemotingCommand getAllTopicListFromNameserver(ChannelHandlerContext ctx, RemotingCommand request) {
         final RemotingCommand response = RemotingCommand.createResponseCommand(null);
 
@@ -438,6 +440,7 @@ public class DefaultRequestProcessor implements NettyRequestProcessor {
         return response;
     }
 
+    // 已读
     private RemotingCommand deleteTopicInNamesrv(ChannelHandlerContext ctx,
         RemotingCommand request) throws RemotingCommandException {
         final RemotingCommand response = RemotingCommand.createResponseCommand(null);
@@ -451,6 +454,7 @@ public class DefaultRequestProcessor implements NettyRequestProcessor {
         return response;
     }
 
+    // 已读
     private RemotingCommand getKVListByNamespace(ChannelHandlerContext ctx,
         RemotingCommand request) throws RemotingCommandException {
         final RemotingCommand response = RemotingCommand.createResponseCommand(null);
@@ -471,6 +475,7 @@ public class DefaultRequestProcessor implements NettyRequestProcessor {
         return response;
     }
 
+    // 已读
     private RemotingCommand getTopicsByCluster(ChannelHandlerContext ctx,
         RemotingCommand request) throws RemotingCommandException {
         final RemotingCommand response = RemotingCommand.createResponseCommand(null);
@@ -485,6 +490,7 @@ public class DefaultRequestProcessor implements NettyRequestProcessor {
         return response;
     }
 
+    // 已读
     private RemotingCommand getSystemTopicListFromNs(ChannelHandlerContext ctx,
         RemotingCommand request) throws RemotingCommandException {
         final RemotingCommand response = RemotingCommand.createResponseCommand(null);
@@ -497,6 +503,7 @@ public class DefaultRequestProcessor implements NettyRequestProcessor {
         return response;
     }
 
+    // 已读
     private RemotingCommand getUnitTopicList(ChannelHandlerContext ctx,
         RemotingCommand request) throws RemotingCommandException {
         final RemotingCommand response = RemotingCommand.createResponseCommand(null);
@@ -509,6 +516,7 @@ public class DefaultRequestProcessor implements NettyRequestProcessor {
         return response;
     }
 
+    // 已读
     private RemotingCommand getHasUnitSubTopicList(ChannelHandlerContext ctx,
         RemotingCommand request) throws RemotingCommandException {
         final RemotingCommand response = RemotingCommand.createResponseCommand(null);
@@ -521,6 +529,7 @@ public class DefaultRequestProcessor implements NettyRequestProcessor {
         return response;
     }
 
+    // 已读
     private RemotingCommand getHasUnitSubUnUnitTopicList(ChannelHandlerContext ctx, RemotingCommand request)
         throws RemotingCommandException {
         final RemotingCommand response = RemotingCommand.createResponseCommand(null);
@@ -533,6 +542,7 @@ public class DefaultRequestProcessor implements NettyRequestProcessor {
         return response;
     }
 
+    // 已读
     private RemotingCommand updateConfig(ChannelHandlerContext ctx, RemotingCommand request) {
         log.info("updateConfig called by {}", RemotingHelper.parseChannelRemoteAddr(ctx.channel()));
 
@@ -573,6 +583,7 @@ public class DefaultRequestProcessor implements NettyRequestProcessor {
         return response;
     }
 
+    // 已读
     private RemotingCommand getConfig(ChannelHandlerContext ctx, RemotingCommand request) {
         final RemotingCommand response = RemotingCommand.createResponseCommand(null);
 

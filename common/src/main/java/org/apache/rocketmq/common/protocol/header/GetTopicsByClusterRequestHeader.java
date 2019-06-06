@@ -21,6 +21,7 @@ import org.apache.rocketmq.remoting.CommandCustomHeader;
 import org.apache.rocketmq.remoting.annotation.CFNotNull;
 import org.apache.rocketmq.remoting.exception.RemotingCommandException;
 
+// 已读
 public class GetTopicsByClusterRequestHeader implements CommandCustomHeader {
     @CFNotNull
     private String cluster;
