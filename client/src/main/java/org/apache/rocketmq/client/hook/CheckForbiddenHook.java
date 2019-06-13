@@ -19,6 +19,7 @@ package org.apache.rocketmq.client.hook;
 
 import org.apache.rocketmq.client.exception.MQClientException;
 
+// 已读
 public interface CheckForbiddenHook {
     String hookName();
 

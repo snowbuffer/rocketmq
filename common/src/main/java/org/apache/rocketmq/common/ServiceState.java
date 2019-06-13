@@ -16,6 +16,7 @@
  */
 package org.apache.rocketmq.common;
 
+// 已读
 public enum ServiceState {
     /**
      * Service just created,not start

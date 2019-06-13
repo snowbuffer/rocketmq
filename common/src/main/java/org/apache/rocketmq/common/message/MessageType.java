@@ -17,6 +17,7 @@
 
 package org.apache.rocketmq.common.message;
 
+// 已读
 public enum MessageType {
     Normal_Msg,
     Trans_Msg_Half,

@@ -19,6 +19,7 @@ package org.apache.rocketmq.common.protocol;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.rocketmq.common.MixAll;
 
+// 已读
 public class NamespaceUtil {
     public static final char NAMESPACE_SEPARATOR = '%';
     public static final String STRING_BLANK = "";

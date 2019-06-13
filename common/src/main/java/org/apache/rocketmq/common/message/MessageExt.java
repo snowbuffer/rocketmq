@@ -22,6 +22,7 @@ import java.nio.ByteBuffer;
 import org.apache.rocketmq.common.TopicFilterType;
 import org.apache.rocketmq.common.sysflag.MessageSysFlag;
 
+// 已读
 public class MessageExt extends Message {
     private static final long serialVersionUID = 5720810158625748049L;
 
@@ -58,6 +59,7 @@ public class MessageExt extends Message {
 
     public static TopicFilterType parseTopicFilterType(final int sysFlag) {
         if ((sysFlag & MessageSysFlag.MULTI_TAGS_FLAG) == MessageSysFlag.MULTI_TAGS_FLAG) {
+            // sysFlag = 1
             return TopicFilterType.MULTI_TAG;
         }
 

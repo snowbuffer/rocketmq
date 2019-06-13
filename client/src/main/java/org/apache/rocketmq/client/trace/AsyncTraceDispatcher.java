@@ -54,25 +54,25 @@ import static org.apache.rocketmq.client.trace.TraceConstants.TRACE_INSTANCE_NAM
 public class AsyncTraceDispatcher implements TraceDispatcher {
 
     private final static InternalLogger log = ClientLogger.getLog();
-    private final int queueSize;
-    private final int batchSize;
-    private final int maxMsgSize;
-    private final DefaultMQProducer traceProducer;
-    private final ThreadPoolExecutor traceExecutor;
+    private final int queueSize; // 用于设置appenderQueue大小， 暂时未发现使用的地方 @since 20190612
+    private final int batchSize; // workerThread每次从traceContextQueue中抓取的批量数据大小
+    private final int maxMsgSize; // traceProducer发送消息最大容量
+    private final DefaultMQProducer traceProducer; // 将worker抓取到的traceContextQueue数据发送给mq
+    private final ThreadPoolExecutor traceExecutor; // 解析将worker抓取到的traceContextQueue数据并将调用traceProducer发送消息
     // The last discard number of log
-    private AtomicLong discardCount;
-    private Thread worker;
+    private AtomicLong discardCount; // traceContextQueue计数
+    private Thread worker; // 批量读取traceContextQueue线程
     private ArrayBlockingQueue<TraceContext> traceContextQueue;
-    private ArrayBlockingQueue<Runnable> appenderQueue;
-    private volatile Thread shutDownHook;
+    private ArrayBlockingQueue<Runnable> appenderQueue; // 暂时未发现使用的地方 @since 20190612
+    private volatile Thread shutDownHook; // 关闭traceContextQueue & appenderQueue 线程钩子
     private volatile boolean stopped = false;
-    private DefaultMQProducerImpl hostProducer;
-    private DefaultMQPushConsumerImpl hostConsumer;
-    private volatile ThreadLocalIndex sendWhichQueue = new ThreadLocalIndex();
-    private String dispatcherId = UUID.randomUUID().toString();
-    private String traceTopicName;
-    private AtomicBoolean isStarted = new AtomicBoolean(false);
-    private AccessChannel accessChannel = AccessChannel.LOCAL;
+    private DefaultMQProducerImpl hostProducer; // 当前AsyncTraceDispatcher追踪实例的源生产者
+    private DefaultMQPushConsumerImpl hostConsumer; // 当前AsyncTraceDispatcher追踪实例的源消费者
+    private volatile ThreadLocalIndex sendWhichQueue = new ThreadLocalIndex(); // traceProducer发送信息时,选择队列
+    private String dispatcherId = UUID.randomUUID().toString(); // 当前AsyncTraceDispatcher追踪实例唯一标识
+    private String traceTopicName; // 当前AsyncTraceDispatcher追踪实例 对应的topic
+    private AtomicBoolean isStarted = new AtomicBoolean(false); // 标识当前AsyncTraceDispatcher追踪实例启动状态
+    private AccessChannel accessChannel = AccessChannel.LOCAL; // 标识发送消息时，使用本地模式还是云模式
 
     public AsyncTraceDispatcher(String traceTopicName, RPCHook rpcHook) {
         // queueSize is greater than or equal to the n power of 2 of value

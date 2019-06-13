@@ -90,25 +90,25 @@ import org.apache.rocketmq.remoting.exception.RemotingTooMuchRequestException;
 public class DefaultMQProducerImpl implements MQProducerInner {
     private final InternalLogger log = ClientLogger.getLog();
     private final Random random = new Random();
-    private final DefaultMQProducer defaultMQProducer;
+    private final DefaultMQProducer defaultMQProducer; // 当前用户门面 代理的是DefaultMQProducerImpl,
     private final ConcurrentMap<String/* topic */, TopicPublishInfo> topicPublishInfoTable =
         new ConcurrentHashMap<String, TopicPublishInfo>();
-    private final ArrayList<SendMessageHook> sendMessageHookList = new ArrayList<SendMessageHook>();
+    private final ArrayList<SendMessageHook> sendMessageHookList = new ArrayList<SendMessageHook>(); // 消息发送器前后监听器，主要用于异步追踪AsyncTraceDispatcher
     private final RPCHook rpcHook;
-    protected BlockingQueue<Runnable> checkRequestQueue;
-    protected ExecutorService checkExecutor;
-    private ServiceState serviceState = ServiceState.CREATE_JUST;
-    private MQClientInstance mQClientFactory;
-    private ArrayList<CheckForbiddenHook> checkForbiddenHookList = new ArrayList<CheckForbiddenHook>();
+    protected BlockingQueue<Runnable> checkRequestQueue; // 事物任务队列
+    protected ExecutorService checkExecutor; // 事物状态检查线程
+    private ServiceState serviceState = ServiceState.CREATE_JUST; // 当前DefaultMQProducerImpl实例状态
+    private MQClientInstance mQClientFactory; // DefaultMQProducerImpl(当前用户门面实例) mQClientFactory: broker对应的client实例
+    private ArrayList<CheckForbiddenHook> checkForbiddenHookList = new ArrayList<CheckForbiddenHook>(); // 暂未发现使用的地方 @since 20190612
     private int zipCompressLevel = Integer.parseInt(System.getProperty(MixAll.MESSAGE_COMPRESS_LEVEL, "5"));
 
     private MQFaultStrategy mqFaultStrategy = new MQFaultStrategy();
 
     private final BlockingQueue<Runnable> asyncSenderThreadPoolQueue;
-    private final ExecutorService defaultAsyncSenderExecutor;
-    private ExecutorService asyncSenderExecutor;
+    private final ExecutorService defaultAsyncSenderExecutor; // 默认发送消息线程池
+    private ExecutorService asyncSenderExecutor; // 自定义发送消息线程池
 
-    public DefaultMQProducerImpl(final DefaultMQProducer defaultMQProducer) {
+    public DefaultMQProducerImpl(final DefaultMQProducer/*用户门面 代理的是DefaultMQProducerImpl*/ defaultMQProducer) {
         this(defaultMQProducer, null);
     }
 
@@ -174,14 +174,18 @@ public class DefaultMQProducerImpl implements MQProducerInner {
             case CREATE_JUST:
                 this.serviceState = ServiceState.START_FAILED;
 
+                // 检查produceGroup是否合法
                 this.checkConfig();
 
                 if (!this.defaultMQProducer.getProducerGroup().equals(MixAll.CLIENT_INNER_PRODUCER_GROUP)) {
+                    // 如果当前实例#instanceName=DEFAULT,则强行将实例绑定到pid进程
                     this.defaultMQProducer.changeInstanceNameToPID();
                 }
 
+                // 创建MQClientInstance 一个DefaultMQProducerImpl只能创建一个MQClientInstance
                 this.mQClientFactory = MQClientManager.getInstance().getAndCreateMQClientInstance(this.defaultMQProducer, rpcHook);
 
+                // MQClientInstance 实际上是一个mQClientFactory， 将当前创建好的MQClientInstance注册到mQClientFactory中
                 boolean registerOK = mQClientFactory.registerProducer(this.defaultMQProducer.getProducerGroup(), this);
                 if (!registerOK) {
                     this.serviceState = ServiceState.CREATE_JUST;
@@ -190,9 +194,11 @@ public class DefaultMQProducerImpl implements MQProducerInner {
                         null);
                 }
 
+                // 自动创建一个TBW102 Topic
                 this.topicPublishInfoTable.put(this.defaultMQProducer.getCreateTopicKey(), new TopicPublishInfo());
 
                 if (startFactory) {
+                    // 启动MQClientInstance
                     mQClientFactory.start();
                 }
 
@@ -211,6 +217,7 @@ public class DefaultMQProducerImpl implements MQProducerInner {
                 break;
         }
 
+        // MQClientInstance 发送一次心跳
         this.mQClientFactory.sendHeartbeatToAllBrokerWithLock();
     }
 

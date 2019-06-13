@@ -23,6 +23,7 @@ import java.util.List;
 /**
  * The context of Trace
  */
+// 已读
 public class TraceContext implements Comparable<TraceContext> {
 
     private TraceType traceType;

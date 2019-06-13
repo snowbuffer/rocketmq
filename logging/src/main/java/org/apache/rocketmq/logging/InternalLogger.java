@@ -17,6 +17,7 @@
 
 package org.apache.rocketmq.logging;
 
+// 已读
 public interface InternalLogger {
 
     String getName();

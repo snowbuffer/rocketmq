@@ -16,6 +16,7 @@
  */
 package org.apache.rocketmq.client.trace;
 
+// 已读
 public enum TraceType {
     Pub,
     SubBefore,
