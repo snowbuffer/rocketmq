@@ -92,20 +92,20 @@ public class DefaultMQProducerImpl implements MQProducerInner {
     private final Random random = new Random();
     private final DefaultMQProducer defaultMQProducer; // 当前用户门面 代理的是DefaultMQProducerImpl,
     private final ConcurrentMap<String/* topic */, TopicPublishInfo> topicPublishInfoTable =
-        new ConcurrentHashMap<String, TopicPublishInfo>();
+        new ConcurrentHashMap<String, TopicPublishInfo>(); // topic 与topic路由信息映射
     private final ArrayList<SendMessageHook> sendMessageHookList = new ArrayList<SendMessageHook>(); // 消息发送器前后监听器，主要用于异步追踪AsyncTraceDispatcher
     private final RPCHook rpcHook;
-    protected BlockingQueue<Runnable> checkRequestQueue; // 事物任务队列
-    protected ExecutorService checkExecutor; // 事物状态检查线程
+    protected BlockingQueue<Runnable> checkRequestQueue; // 事物任务队列（TransactionMQProducer）
+    protected ExecutorService checkExecutor; // 事物状态检查线程（TransactionMQProducer）
     private ServiceState serviceState = ServiceState.CREATE_JUST; // 当前DefaultMQProducerImpl实例状态
     private MQClientInstance mQClientFactory; // DefaultMQProducerImpl(当前用户门面实例) mQClientFactory: broker对应的client实例
     private ArrayList<CheckForbiddenHook> checkForbiddenHookList = new ArrayList<CheckForbiddenHook>(); // 暂未发现使用的地方 @since 20190612
     private int zipCompressLevel = Integer.parseInt(System.getProperty(MixAll.MESSAGE_COMPRESS_LEVEL, "5"));
 
-    private MQFaultStrategy mqFaultStrategy = new MQFaultStrategy();
+    private MQFaultStrategy mqFaultStrategy = new MQFaultStrategy(); // 故障选择策略
 
-    private final BlockingQueue<Runnable> asyncSenderThreadPoolQueue;
-    private final ExecutorService defaultAsyncSenderExecutor; // 默认发送消息线程池
+    private final BlockingQueue<Runnable> asyncSenderThreadPoolQueue;// 异步发送消息队列
+    private final ExecutorService defaultAsyncSenderExecutor; // 默认异步发送消息线程池
     private ExecutorService asyncSenderExecutor; // 自定义发送消息线程池
 
     public DefaultMQProducerImpl(final DefaultMQProducer/*用户门面 代理的是DefaultMQProducerImpl*/ defaultMQProducer) {
@@ -534,6 +534,7 @@ public class DefaultMQProducerImpl implements MQProducerInner {
         long beginTimestampFirst = System.currentTimeMillis();
         long beginTimestampPrev = beginTimestampFirst;
         long endTimestamp = beginTimestampFirst;
+        // 查找当前topic的路由信息
         TopicPublishInfo topicPublishInfo = this.tryToFindTopicPublishInfo(msg.getTopic());
         if (topicPublishInfo != null && topicPublishInfo.ok()) {
             boolean callTimeout = false;
@@ -545,6 +546,7 @@ public class DefaultMQProducerImpl implements MQProducerInner {
             String[] brokersSent = new String[timesTotal];
             for (; times < timesTotal; times++) {
                 String lastBrokerName = null == mq ? null : mq.getBrokerName();
+                // 选择一个队列
                 MessageQueue mqSelected = this.selectOneMessageQueue(topicPublishInfo, lastBrokerName);
                 if (mqSelected != null) {
                     mq = mqSelected;
@@ -681,6 +683,7 @@ public class DefaultMQProducerImpl implements MQProducerInner {
         if (topicPublishInfo.isHaveTopicRouterInfo() || topicPublishInfo.ok()) {
             return topicPublishInfo;
         } else {
+            // 考虑到网络抖动，重新再去查一次
             this.mQClientFactory.updateTopicRouteInfoFromNameServer(topic, true, this.defaultMQProducer);
             topicPublishInfo = this.topicPublishInfoTable.get(topic);
             return topicPublishInfo;

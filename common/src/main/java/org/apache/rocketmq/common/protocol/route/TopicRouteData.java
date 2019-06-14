@@ -23,12 +23,31 @@ package org.apache.rocketmq.common.protocol.route;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
+
 import org.apache.rocketmq.remoting.protocol.RemotingSerializable;
 
 public class TopicRouteData extends RemotingSerializable {
     private String orderTopicConf;
-    private List<QueueData> queueDatas;
-    private List<BrokerData> brokerDatas;
+    /**
+     * [
+     *      private String brokerName;
+     *      private int readQueueNums;
+     *      private int writeQueueNums;
+     *      private int perm;
+     *      private int topicSynFlag;
+     * ]
+     */
+    private List<QueueData> queueDatas; // 当前topic存在哪些broker上
+    /**
+     * [
+     *     private String cluster;
+     *     private String brokerName;
+     *     private HashMap<Long //brokerId //,String// broker address //>brokerAddrs;
+     *     private final Random random = new Random();
+     * ]
+     */
+    private List<BrokerData> brokerDatas; // 当前topic对应的主从broker信息
     private HashMap<String/* brokerAddr */, List<String>/* Filter Server */> filterServerTable;
 
     public TopicRouteData cloneTopicRouteData() {

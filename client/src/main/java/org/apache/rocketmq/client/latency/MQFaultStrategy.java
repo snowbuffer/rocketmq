@@ -63,23 +63,30 @@ public class MQFaultStrategy {
                     int pos = Math.abs(index++) % tpInfo.getMessageQueueList().size();
                     if (pos < 0)
                         pos = 0;
+                    // 选中下一个queue
                     MessageQueue mq = tpInfo.getMessageQueueList().get(pos);
+                    // broker可用
                     if (latencyFaultTolerance.isAvailable(mq.getBrokerName())) {
+                        // 不存在上一次故障broker 或者上次次故障broker已经恢复了
                         if (null == lastBrokerName || mq.getBrokerName().equals(lastBrokerName))
                             return mq;
                     }
                 }
+
+                // 当前路由信息依赖的故障broker不可用 ,则重新找一个可用的broker
 
                 final String notBestBroker = latencyFaultTolerance.pickOneAtLeast();
                 int writeQueueNums = tpInfo.getQueueIdByBroker(notBestBroker);
                 if (writeQueueNums > 0) {
                     final MessageQueue mq = tpInfo.selectOneMessageQueue();
                     if (notBestBroker != null) {
+                        // 将mg消息发往新的broker上
                         mq.setBrokerName(notBestBroker);
                         mq.setQueueId(tpInfo.getSendWhichQueue().getAndIncrement() % writeQueueNums);
                     }
                     return mq;
                 } else {
+                    // 发现选中的broker不可写，则从当前路由表中删除
                     latencyFaultTolerance.remove(notBestBroker);
                 }
             } catch (Exception e) {

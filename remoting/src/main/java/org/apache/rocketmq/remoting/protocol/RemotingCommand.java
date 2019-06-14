@@ -57,10 +57,10 @@ public class RemotingCommand {
     private static final String LONG_CANONICAL_NAME_2 = long.class.getCanonicalName();
     private static final String BOOLEAN_CANONICAL_NAME_1 = Boolean.class.getCanonicalName();
     private static final String BOOLEAN_CANONICAL_NAME_2 = boolean.class.getCanonicalName();
-    private static volatile int configVersion = -1;
+    private static volatile int configVersion = -1; // 协议版本， 可以通过rocketmq.remoting.version定制，用于日后RemotingCommand 版本升级
     private static AtomicInteger requestId = new AtomicInteger(0);
 
-    private static SerializeType serializeTypeConfigInThisServer = SerializeType.JSON;
+    private static SerializeType serializeTypeConfigInThisServer = SerializeType.JSON; // 默认的序列化协议
 
     static {
         final String protocol = System.getProperty(SERIALIZE_TYPE_PROPERTY, System.getenv(SERIALIZE_TYPE_ENV));
@@ -76,8 +76,8 @@ public class RemotingCommand {
     private int code;
     private LanguageCode language = LanguageCode.JAVA;
     private int version = 0;
-    private int opaque = requestId.getAndIncrement();
-    private int flag = 0;
+    private int opaque = requestId.getAndIncrement(); // 一次请求唯一标识
+    private int flag = 0; // 根据RPC_TYPE 来 标识是request(flag=0)还是response(flag=1) (ONE_WAY)flag=2
     private String remark;
     private HashMap<String/*customefieldName*/, String> extFields;
     private transient CommandCustomHeader customHeader; // extFields中的非this开头的fileName的值可以覆盖customHeader对应的字段值
@@ -152,14 +152,17 @@ public class RemotingCommand {
         return decode(byteBuffer);
     }
 
+    /**
+     * 4(header length(包含body)) + 4(序列化协议+headerlength/2的16次方+headlength/2的8次方+headerlength) + N(headerData + bodydata)
+     */
     // 已读
     public static RemotingCommand decode(final ByteBuffer byteBuffer) {
         int length = byteBuffer.limit();
-        int oriHeaderLen = byteBuffer.getInt();
+        int oriHeaderLen = byteBuffer.getInt(); // 4(header length(包含body))
         int headerLength = getHeaderLength(oriHeaderLen);
 
         byte[] headerData = new byte[headerLength];
-        byteBuffer.get(headerData);
+        byteBuffer.get(headerData); //
 
         RemotingCommand cmd = headerDecode(headerData, getProtocolType(oriHeaderLen));
 
@@ -352,6 +355,13 @@ public class RemotingCommand {
     }
 
     // 已读
+
+    /**
+     *  4(header length(包含body)) + 4(序列化协议+headerlength/2的16次方+headlength/2的8次方+headerlength) + N(headerData + bodydata)
+     *
+     * @return
+     */
+
     public ByteBuffer encode() {
         // 1> header length size
         int length = 4;
@@ -430,6 +440,11 @@ public class RemotingCommand {
         return encodeHeader(this.body != null ? this.body.length : 0);
     }
 
+    /**
+     *  4(header length(不包含body)) + 4(序列化协议+headerlength/2的16次方+headlength/2的8次方+headerlength) + N(headerData)
+     *
+     * @return
+     */
     // 已读
     public ByteBuffer encodeHeader(final int bodyLength) {
         // 1> header length size
@@ -464,6 +479,10 @@ public class RemotingCommand {
     public void markOnewayRPC() {
         int bits = 1 << RPC_ONEWAY;
         this.flag |= bits;
+    }
+
+    public static void main(String[] args){
+      System.out.println(0 | (1 << RPC_ONEWAY));
     }
 
     // 已读

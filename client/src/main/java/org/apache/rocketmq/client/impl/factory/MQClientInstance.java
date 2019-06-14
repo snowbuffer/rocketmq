@@ -92,12 +92,12 @@ public class MQClientInstance {
     private final int instanceIndex;
     private final String clientId;
     private final long bootTimestamp = System.currentTimeMillis();
-    private final ConcurrentMap<String/* group */, MQProducerInner> producerTable = new ConcurrentHashMap<String, MQProducerInner>();
+    private final ConcurrentMap<String/* group */, MQProducerInner/*DefaultMQProducerImpl*/> producerTable = new ConcurrentHashMap<String, MQProducerInner>();
     private final ConcurrentMap<String/* group */, MQConsumerInner> consumerTable = new ConcurrentHashMap<String, MQConsumerInner>();
     private final ConcurrentMap<String/* group */, MQAdminExtInner> adminExtTable = new ConcurrentHashMap<String, MQAdminExtInner>();
-    private final NettyClientConfig nettyClientConfig;
-    private final MQClientAPIImpl mQClientAPIImpl;
-    private final MQAdminImpl mQAdminImpl;
+    private final NettyClientConfig nettyClientConfig; // netty配置
+    private final MQClientAPIImpl mQClientAPIImpl;  // broker对应的本地客户端 (clientRemotingProcessor)
+    private final MQAdminImpl mQAdminImpl; // mQClientAPIImpl 对后台管理api进行封装，实际上还是调用mQClientAPIImpl
     private final ConcurrentMap<String/* Topic */, TopicRouteData> topicRouteTable = new ConcurrentHashMap<String, TopicRouteData>();
     private final Lock lockNamesrv = new ReentrantLock();
     private final Lock lockHeartbeat = new ReentrantLock();
@@ -111,11 +111,11 @@ public class MQClientInstance {
             return new Thread(r, "MQClientFactoryScheduledThread");
         }
     });
-    private final ClientRemotingProcessor clientRemotingProcessor;
-    private final PullMessageService pullMessageService;
-    private final RebalanceService rebalanceService;
-    private final DefaultMQProducer defaultMQProducer;
-    private final ConsumerStatsManager consumerStatsManager;
+    private final ClientRemotingProcessor clientRemotingProcessor; // 简单理解成本地的一个Controller
+    private final PullMessageService pullMessageService; // 拉取broker服务
+    private final RebalanceService rebalanceService; // consumer端负载均衡服务
+    private final DefaultMQProducer defaultMQProducer; // DefaultMQProducerImpl门面
+    private final ConsumerStatsManager consumerStatsManager; // consumer端统计管理器
     private final AtomicLong sendHeartbeatTimesTotal = new AtomicLong(0);
     private ServiceState serviceState = ServiceState.CREATE_JUST;
     private DatagramSocket datagramSocket;
@@ -265,6 +265,7 @@ public class MQClientInstance {
                 @Override
                 public void run() {
                     try {
+                        // 每个120s抓取一次namseServer信息
                         MQClientInstance.this.mQClientAPIImpl.fetchNameServerAddr();
                     } catch (Exception e) {
                         log.error("ScheduledTask fetchNameServerAddr exception", e);
@@ -278,6 +279,7 @@ public class MQClientInstance {
             @Override
             public void run() {
                 try {
+                    // 更新路由信息
                     MQClientInstance.this.updateTopicRouteInfoFromNameServer();
                 } catch (Exception e) {
                     log.error("ScheduledTask updateTopicRouteInfoFromNameServer exception", e);
@@ -290,7 +292,9 @@ public class MQClientInstance {
             @Override
             public void run() {
                 try {
+                    // 清理下线的broker
                     MQClientInstance.this.cleanOfflineBroker();
+                    // 与所有的borker维持心跳
                     MQClientInstance.this.sendHeartbeatToAllBrokerWithLock();
                 } catch (Exception e) {
                     log.error("ScheduledTask sendHeartbeatToAllBroker exception", e);
@@ -303,6 +307,7 @@ public class MQClientInstance {
             @Override
             public void run() {
                 try {
+                    // 持久化所有消费者的消费偏移量
                     MQClientInstance.this.persistAllConsumerOffset();
                 } catch (Exception e) {
                     log.error("ScheduledTask persistAllConsumerOffset exception", e);
@@ -315,6 +320,7 @@ public class MQClientInstance {
             @Override
             public void run() {
                 try {
+                    // 自动调整线程池
                     MQClientInstance.this.adjustThreadPool();
                 } catch (Exception e) {
                     log.error("ScheduledTask adjustThreadPool exception", e);

@@ -66,7 +66,7 @@ public class TopicPublishInfo {
         this.haveTopicRouterInfo = haveTopicRouterInfo;
     }
 
-    public MessageQueue selectOneMessageQueue(final String lastBrokerName) {
+    public MessageQueue selectOneMessageQueue(final String lastBrokerName/*上一次发生故障的borker*/) {
         if (lastBrokerName == null) {
             return selectOneMessageQueue();
         } else {
@@ -76,14 +76,17 @@ public class TopicPublishInfo {
                 if (pos < 0)
                     pos = 0;
                 MessageQueue mq = this.messageQueueList.get(pos);
-                if (!mq.getBrokerName().equals(lastBrokerName)) {
+                if (!mq.getBrokerName().equals(lastBrokerName)) { // 如果当前选中的queue所在borker不是上一次故障的broker
                     return mq;
                 }
+
+                // 跳过故障broker,尝试下一个broker
             }
             return selectOneMessageQueue();
         }
     }
 
+    // 下一个queue 索引
     public MessageQueue selectOneMessageQueue() {
         int index = this.sendWhichQueue.getAndIncrement();
         int pos = Math.abs(index) % this.messageQueueList.size();
