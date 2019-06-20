@@ -79,17 +79,17 @@ public abstract class NettyRemotingAbstract {
      * responding processor in this map to handle the request.
      */
     protected final HashMap<Integer/* request code */, Pair<NettyRequestProcessor, ExecutorService>> processorTable =
-        new HashMap<Integer, Pair<NettyRequestProcessor, ExecutorService>>(64);
+        new HashMap<Integer, Pair<NettyRequestProcessor, ExecutorService>>(64); // 单次请求对应的处理映射 如果此种不存在，则使用defaultRequestProcessor 替代处理
 
     /**
      * Executor to feed netty events to user defined {@link ChannelEventListener}.
      */
-    protected final NettyEventExecutor nettyEventExecutor = new NettyEventExecutor();
+    protected final NettyEventExecutor nettyEventExecutor = new NettyEventExecutor(); // channel通道状态检测
 
     /**
      * The default request processor to use in case there is no exact match in {@link #processorTable} per request code.
      */
-    protected Pair<NettyRequestProcessor, ExecutorService> defaultRequestProcessor;
+    protected Pair<NettyRequestProcessor, ExecutorService> defaultRequestProcessor; // 全局默认的是请求处理
 
     /**
      * SSL context via which to create {@link SslHandler}.
@@ -363,7 +363,7 @@ public abstract class NettyRemotingAbstract {
      * @return Dedicated thread pool instance if specified; or null if the callback is supposed to be executed in the
      * netty event-loop thread.
      */
-    public abstract ExecutorService getCallbackExecutor();
+    public abstract ExecutorService getCallbackExecutor(); // response阶段使用
 
     /**
      * <p>

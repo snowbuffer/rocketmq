@@ -79,8 +79,8 @@ public class RemotingCommand {
     private int opaque = requestId.getAndIncrement(); // 一次请求唯一标识
     private int flag = 0; // 根据RPC_TYPE 来 标识是request(flag=0)还是response(flag=1) (ONE_WAY)flag=2
     private String remark;
-    private HashMap<String/*customefieldName*/, String> extFields;
-    private transient CommandCustomHeader customHeader; // extFields中的非this开头的fileName的值可以覆盖customHeader对应的字段值
+    private HashMap<String, String> extFields;
+    private transient CommandCustomHeader customHeader; // 自定义头，该内容会被填充到extFields
 
     private SerializeType serializeTypeCurrentRPC = serializeTypeConfigInThisServer;
 
@@ -153,12 +153,18 @@ public class RemotingCommand {
     }
 
     /**
-     * 4(header length(包含body)) + 4(序列化协议+headerlength/2的16次方+headlength/2的8次方+headerlength) + N(headerData + bodydata)
+     *
+     * 详见：README.md > 设计(Design) > #2.2 协议设计与编解码 通讯协议
+     *
+     * 参考： NettyDecoder ，当调用#decode方法时候，NettyDecoder机已经将长度域的数据处理掉了，因此这里只包含业务数据
+     *  即：
+     *  总长度(4字节)(长度域) +  序列化协议(1字节) + headerData.length右移16位后的结果(1字节) + headerData.length右移8位后的结果(1字节) + headerData.length(1字节) + N(headerData + bodydata)
+     *                         | ->                                                                                                                                         <- 总长度|
      */
     // 已读
     public static RemotingCommand decode(final ByteBuffer byteBuffer) {
         int length = byteBuffer.limit();
-        int oriHeaderLen = byteBuffer.getInt(); // 4(header length(包含body))
+        int oriHeaderLen = byteBuffer.getInt(); // 序列化协议(1字节) + headerData.length右移16位后的结果(1字节) + headerData.length右移8位后的结果(1字节) + headerData.length(1字节)
         int headerLength = getHeaderLength(oriHeaderLen);
 
         byte[] headerData = new byte[headerLength];
@@ -255,7 +261,14 @@ public class RemotingCommand {
         this.customHeader = customHeader;
     }
 
-    // 已读
+    /**
+     * 在构建一个RemotingCommand对象时候， customHeader本身不会进行序列化，将customHeader的至填充到extFields进行网络传输，
+     * 在解码时候，又通过extFields 解出customHeader对象
+     * @param classHeader
+     * @return
+     * @throws RemotingCommandException
+     */
+    // 已读 将当前RemotingCommand对象中的customHeader通过extFields进行解码
     public CommandCustomHeader decodeCommandCustomHeader(
         Class<? extends CommandCustomHeader> classHeader) throws RemotingCommandException {
         CommandCustomHeader objectHeader;
@@ -270,7 +283,7 @@ public class RemotingCommand {
         // 如果存在自定义的字段
         if (this.extFields != null) {
 
-            Field[] fields = getClazzFields(classHeader);
+            Field[] fields = getClazzFields(classHeader); // 目标fields
             for (Field field : fields) {
                 if (!Modifier.isStatic(field.getModifiers())) {
                     String fieldName = field.getName();
@@ -301,7 +314,7 @@ public class RemotingCommand {
                             } else {
                                 throw new RemotingCommandException("the custom field <" + fieldName + "> type is not supported");
                             }
-
+                            // 向目标objectHeader 填充值
                             field.set(objectHeader, valueParsed);
 
                         } catch (Throwable e) {
@@ -357,9 +370,10 @@ public class RemotingCommand {
     // 已读
 
     /**
-     *  4(header length(包含body)) + 4(序列化协议+headerlength/2的16次方+headlength/2的8次方+headerlength) + N(headerData + bodydata)
      *
-     * @return
+     *  即：
+     *  总长度(4字节) +  序列化协议(1字节) + headerData.length右移16位后的结果(1字节) + headerData.length右移8位后的结果(1字节) + headerData.length(1字节) + N(headerData + bodydata)
+     *                  | ->                                                                                                                                         <- 总长度|
      */
 
     public ByteBuffer encode() {
@@ -406,6 +420,7 @@ public class RemotingCommand {
         }
     }
 
+    // 详见 #decodeCommandCustomHeader注释部分
     // 已读
     public void makeCustomHeaderToNet() {
         if (this.customHeader != null) {
@@ -441,9 +456,10 @@ public class RemotingCommand {
     }
 
     /**
-     *  4(header length(不包含body)) + 4(序列化协议+headerlength/2的16次方+headlength/2的8次方+headerlength) + N(headerData)
      *
-     * @return
+     *  即：
+     *  总长度(4字节) +  序列化协议(1字节) + headerData.length右移16位后的结果(1字节) + headerData.length右移8位后的结果(1字节) + headerData.length(1字节) + N(headerData )
+     *                  | ->                                                                                                                              <- 总长度|
      */
     // 已读
     public ByteBuffer encodeHeader(final int bodyLength) {
@@ -481,9 +497,6 @@ public class RemotingCommand {
         this.flag |= bits;
     }
 
-    public static void main(String[] args){
-      System.out.println(0 | (1 << RPC_ONEWAY));
-    }
 
     // 已读
     @JSONField(serialize = false)
