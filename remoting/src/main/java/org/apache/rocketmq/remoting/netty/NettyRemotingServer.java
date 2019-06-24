@@ -65,15 +65,15 @@ import org.apache.rocketmq.remoting.protocol.RemotingCommand;
 public class NettyRemotingServer extends NettyRemotingAbstract implements RemotingServer {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(RemotingHelper.ROCKETMQ_REMOTING);
     private final ServerBootstrap serverBootstrap;
-    private final EventLoopGroup eventLoopGroupSelector;
-    private final EventLoopGroup eventLoopGroupBoss;
+    private final EventLoopGroup eventLoopGroupSelector; // 员工
+    private final EventLoopGroup eventLoopGroupBoss; // 老板
     private final NettyServerConfig nettyServerConfig;
 
-    private final ExecutorService publicExecutor;
+    private final ExecutorService publicExecutor; /* 公共线程池 */
     private final ChannelEventListener channelEventListener;
 
     private final Timer timer = new Timer("ServerHouseKeepingService", true);
-    private DefaultEventExecutorGroup defaultEventExecutorGroup;
+    private DefaultEventExecutorGroup defaultEventExecutorGroup; // 默认的事件线程，当一个handler比较耗时的时候，可以使用线程池去执行，防止长时间占用worker资源
 
 
     private int port = 0;
@@ -206,7 +206,7 @@ public class NettyRemotingServer extends NettyRemotingAbstract implements Remoti
                                 new NettyEncoder(),
                                 new NettyDecoder(),
                                 new IdleStateHandler(0, 0, nettyServerConfig.getServerChannelMaxIdleTimeSeconds()),
-                                new NettyConnectManageHandler(),
+                                new NettyConnectManageHandler(), /*通道状态事件处理器*/
                                 new NettyServerHandler()
                             );
                     }

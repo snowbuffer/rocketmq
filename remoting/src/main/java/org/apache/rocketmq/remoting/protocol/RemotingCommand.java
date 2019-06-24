@@ -73,7 +73,7 @@ public class RemotingCommand {
         }
     }
 
-    private int code;
+    private int code; // 请求码/错误码
     private LanguageCode language = LanguageCode.JAVA;
     private int version = 0;
     private int opaque = requestId.getAndIncrement(); // 一次请求唯一标识

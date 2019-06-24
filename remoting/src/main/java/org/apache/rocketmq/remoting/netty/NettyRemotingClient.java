@@ -75,7 +75,7 @@ public class NettyRemotingClient extends NettyRemotingAbstract implements Remoti
 
     private final NettyClientConfig nettyClientConfig;
     private final Bootstrap bootstrap = new Bootstrap();
-    private final EventLoopGroup eventLoopGroupWorker;
+    private final EventLoopGroup eventLoopGroupWorker; // selector线程组，默认1个线程
     private final Lock lockChannelTables = new ReentrantLock();
     private final ConcurrentMap<String /* addr */, ChannelWrapper> channelTables = new ConcurrentHashMap<String, ChannelWrapper>();
 
@@ -86,14 +86,14 @@ public class NettyRemotingClient extends NettyRemotingAbstract implements Remoti
     private final AtomicInteger namesrvIndex = new AtomicInteger(initValueIndex());
     private final Lock lockNamesrvChannel = new ReentrantLock();
 
-    private final ExecutorService publicExecutor; // 公共线程池
+    private final ExecutorService publicExecutor; // 公共线程池 默认4线程 主要用于registerProcessor和callbackExecutor 未设置场景下去的默认线程池
 
     /**
      * Invoke the callback methods in this executor when process response.
      */
     private ExecutorService callbackExecutor;
     private final ChannelEventListener channelEventListener;
-    private DefaultEventExecutorGroup defaultEventExecutorGroup;
+    private DefaultEventExecutorGroup defaultEventExecutorGroup; // 默认的事件线程，当一个handler比较耗时的时候，可以使用线程池去执行，防止长时间占用worker资源
 
     public NettyRemotingClient(final NettyClientConfig nettyClientConfig) {
         this(nettyClientConfig, null);
@@ -187,8 +187,8 @@ public class NettyRemotingClient extends NettyRemotingAbstract implements Remoti
                         new NettyEncoder(), // 编码器
                         new NettyDecoder(), // 解码器
                         new IdleStateHandler(0, 0, nettyClientConfig.getClientChannelMaxIdleTimeSeconds()), // 心跳检测
-                        new NettyConnectManageHandler(),
-                        new NettyClientHandler());
+                        new NettyConnectManageHandler(), /*通道状态事件处理器*/
+                        new NettyClientHandler()); /* client端接收响应处理器*/
                 }
             });
 
@@ -398,6 +398,7 @@ public class NettyRemotingClient extends NettyRemotingAbstract implements Remoti
 
     private Channel getAndCreateChannel(final String addr) throws InterruptedException {
         if (null == addr) {
+            // 没有指定机器
             return getAndCreateNameserverChannel();
         }
 

@@ -390,7 +390,12 @@ public class Logger implements Appender.AppenderPipeline {
             String name = cat.name;
             int length = name.length();
             boolean parentFound = false;
-
+            /**
+             * a.b.c.d.e=a.b.c.d
+             * a.b.c.d.e=a.b.c
+             * a.b.c.d.e=a.b
+             * a.b.c.d.e=a
+             */
             for (int i = name.lastIndexOf('.', length - 1); i >= 0;
                  i = name.lastIndexOf('.', i - 1)) {
                 String substr = name.substring(0, i);
